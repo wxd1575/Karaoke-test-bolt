@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useEnhancedKaraoke } from './hooks/useEnhancedKaraoke';
+import { useEnhancedKaraokeWithAudio } from './hooks/useEnhancedKaraokeWithAudio';
 import { EnhancedSongLibrary } from './components/EnhancedSongLibrary';
-import { EnhancedKaraokePlayer } from './components/EnhancedKaraokePlayer';
+import { EnhancedKaraokePlayerWithAudio } from './components/EnhancedKaraokePlayerWithAudio';
 import { QueueSidebar } from './components/QueueSidebar';
 import { Menu, X } from 'lucide-react';
 
@@ -17,6 +17,7 @@ function App() {
     setSelectedGenre,
     genres,
     favorites,
+    isLoadingAudio,
     addToQueue,
     removeFromQueue,
     playSong,
@@ -26,8 +27,12 @@ function App() {
     setTempoAdjustment,
     skipSong,
     seekTo,
-    toggleFavorite
-  } = useEnhancedKaraoke();
+    toggleFavorite,
+    toggleMicrophone,
+    setMicrophoneVolume,
+    getFrequencyData,
+    audioEngineState
+  } = useEnhancedKaraokeWithAudio();
 
   const [viewMode, setViewMode] = useState<ViewMode>('library');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -77,7 +82,7 @@ function App() {
               </div>
             </div>
           ) : state.currentSong ? (
-            <EnhancedKaraokePlayer
+            <EnhancedKaraokePlayerWithAudio
               song={state.currentSong}
               isPlaying={state.isPlaying}
               currentTime={state.currentTime}
@@ -85,6 +90,10 @@ function App() {
               keyAdjustment={state.keyAdjustment}
               tempoAdjustment={state.tempoAdjustment}
               currentLyricIndex={state.currentLyricIndex}
+              microphoneEnabled={audioEngineState.microphoneEnabled}
+              microphoneVolume={audioEngineState.microphoneVolume}
+              isLoadingAudio={isLoadingAudio}
+              frequencyData={getFrequencyData()}
               onTogglePlayPause={togglePlayPause}
               onSkip={skipSong}
               onVolumeChange={setVolume}
@@ -92,6 +101,8 @@ function App() {
               onTempoChange={setTempoAdjustment}
               onBack={handleBackToLibrary}
               onSeek={seekTo}
+              onToggleMicrophone={toggleMicrophone}
+              onMicrophoneVolumeChange={setMicrophoneVolume}
             />
           ) : (
             <div className="h-full flex items-center justify-center">
@@ -143,6 +154,16 @@ function App() {
             </span>
           )}
         </button>
+      )}
+
+      {/* Audio Loading Indicator */}
+      {isLoadingAudio && (
+        <div className="fixed top-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-3 border border-gray-700 z-50">
+          <div className="flex items-center gap-2 text-cyan-400">
+            <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-sm">Loading audio...</span>
+          </div>
+        </div>
       )}
     </div>
   );
