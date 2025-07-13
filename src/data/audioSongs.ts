@@ -16,7 +16,7 @@ export const audioSongs: Song[] = [
     difficulty: 'Hard',
     popularity: 95,
     coverImage: 'https://images.pexels.com/photos/167636/pexels-photo-167636.jpeg?auto=compress&cs=tinysrgb&w=400',
-    audioUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', // Placeholder
+    audioUrl: generateLocalAudioUrl('demo-song-1.mp3'),
     waveformData: Array.from({length: 100}, (_, i) => Math.sin(i * 0.1) * 0.5 + 0.5),
     lyrics: [
       { id: '1-1', text: 'Is this the real life?', startTime: 0, endTime: 3, type: 'verse' },
@@ -42,7 +42,7 @@ export const audioSongs: Song[] = [
     difficulty: 'Medium',
     popularity: 92,
     coverImage: 'https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400',
-    audioUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-04.wav', // Placeholder
+    audioUrl: generateLocalAudioUrl('demo-song-2.mp3'),
     waveformData: Array.from({length: 100}, (_, i) => Math.abs(Math.sin(i * 0.15)) * 0.7 + 0.3),
     lyrics: [
       { id: '2-1', text: 'The club isn\'t the best place to find a lover', startTime: 0, endTime: 4, type: 'verse' },
@@ -67,7 +67,7 @@ export const audioSongs: Song[] = [
     difficulty: 'Easy',
     popularity: 80,
     coverImage: 'https://images.pexels.com/photos/1699161/pexels-photo-1699161.jpeg?auto=compress&cs=tinysrgb&w=400',
-    audioUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-03.wav', // Placeholder
+    audioUrl: generateLocalAudioUrl('demo-song-3.mp3'),
     waveformData: Array.from({length: 100}, (_, i) => Math.pow(Math.sin(i * 0.08), 2) * 0.8 + 0.2),
     lyrics: [
       { id: '3-1', text: 'This is a demo song', startTime: 0, endTime: 3, type: 'verse' },
