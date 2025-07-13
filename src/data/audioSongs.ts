@@ -1,5 +1,10 @@
 import { Song } from '../types/karaoke';
 
+// Function to generate audio URLs for local development
+export const generateLocalAudioUrl = (filename: string): string => {
+  return `/audio/${filename}`;
+};
+
 // Sample royalty-free audio URLs (using placeholder audio for demo)
 // In production, these would be your actual audio files
 export const audioSongs: Song[] = [
@@ -81,11 +86,6 @@ export const audioSongs: Song[] = [
     ]
   }
 ];
-
-// Function to generate audio URLs for local development
-export const generateLocalAudioUrl = (filename: string): string => {
-  return `/audio/${filename}`;
-};
 
 // Sample audio file names (you would place these in public/audio/)
 export const sampleAudioFiles = [
