@@ -3,9 +3,12 @@ import { useEnhancedKaraokeWithAudio } from './hooks/useEnhancedKaraokeWithAudio
 import { EnhancedSongLibrary } from './components/EnhancedSongLibrary';
 import { EnhancedKaraokePlayerWithAudio } from './components/EnhancedKaraokePlayerWithAudio';
 import { QueueSidebar } from './components/QueueSidebar';
+import { PlaylistManager } from './components/PlaylistManager';
+import { ScoreDisplay } from './components/ScoreDisplay';
+import { VoiceEffectsPanel } from './components/VoiceEffectsPanel';
 import { Menu, X } from 'lucide-react';
 
-type ViewMode = 'library' | 'player';
+type ViewMode = 'library' | 'player' | 'playlists';
 
 function App() {
   const {
@@ -18,6 +21,10 @@ function App() {
     genres,
     favorites,
     isLoadingAudio,
+    playlists,
+    voiceEffect,
+    reverbLevel,
+    echoLevel,
     addToQueue,
     removeFromQueue,
     playSong,
@@ -28,6 +35,11 @@ function App() {
     skipSong,
     seekTo,
     toggleFavorite,
+    toggleRecording,
+    createPlaylist,
+    deletePlaylist,
+    playPlaylist,
+    setVoiceEffectSettings,
     toggleMicrophone,
     setMicrophoneVolume,
     getFrequencyData,
@@ -44,6 +56,10 @@ function App() {
 
   const handleBackToLibrary = () => {
     setViewMode('library');
+  };
+
+  const handleShowPlaylists = () => {
+    setViewMode('playlists');
   };
 
   return (
@@ -67,6 +83,30 @@ function App() {
                   </button>
                 </div>
 
+                {/* Navigation */}
+                <div className="flex gap-4 mb-6">
+                  <button
+                    onClick={() => setViewMode('library')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      viewMode === 'library'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
+                    }`}
+                  >
+                    Song Library
+                  </button>
+                  <button
+                    onClick={handleShowPlaylists}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      viewMode === 'playlists'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
+                    }`}
+                  >
+                    My Playlists
+                  </button>
+                </div>
+
                 <EnhancedSongLibrary
                   songs={songs}
                   searchTerm={searchTerm}
@@ -81,29 +121,103 @@ function App() {
                 />
               </div>
             </div>
+          ) : viewMode === 'playlists' ? (
+            <div className="h-full overflow-y-auto">
+              <div className="container mx-auto px-4 py-6 max-w-6xl">
+                {/* Mobile Header */}
+                <div className="flex items-center justify-between mb-6 lg:hidden">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                    KaraokeFlow
+                  </h1>
+                  <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition-colors border border-gray-700"
+                  >
+                    <Menu className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+
+                {/* Navigation */}
+                <div className="flex gap-4 mb-6">
+                  <button
+                    onClick={() => setViewMode('library')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      viewMode === 'library'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
+                    }`}
+                  >
+                    Song Library
+                  </button>
+                  <button
+                    onClick={handleShowPlaylists}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      viewMode === 'playlists'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
+                    }`}
+                  >
+                    My Playlists
+                  </button>
+                </div>
+
+                <PlaylistManager
+                  playlists={playlists}
+                  songs={songs}
+                  onCreatePlaylist={createPlaylist}
+                  onDeletePlaylist={deletePlaylist}
+                  onAddToPlaylist={(playlistId, songId) => {}}
+                  onRemoveFromPlaylist={(playlistId, songId) => {}}
+                  onPlayPlaylist={playPlaylist}
+                />
+              </div>
+            </div>
           ) : state.currentSong ? (
-            <EnhancedKaraokePlayerWithAudio
-              song={state.currentSong}
-              isPlaying={state.isPlaying}
-              currentTime={state.currentTime}
-              volume={state.volume}
-              keyAdjustment={state.keyAdjustment}
-              tempoAdjustment={state.tempoAdjustment}
-              currentLyricIndex={state.currentLyricIndex}
-              microphoneEnabled={audioEngineState.microphoneEnabled}
-              microphoneVolume={audioEngineState.microphoneVolume}
-              isLoadingAudio={isLoadingAudio}
-              frequencyData={getFrequencyData()}
-              onTogglePlayPause={togglePlayPause}
-              onSkip={skipSong}
-              onVolumeChange={setVolume}
-              onKeyChange={setKeyAdjustment}
-              onTempoChange={setTempoAdjustment}
-              onBack={handleBackToLibrary}
-              onSeek={seekTo}
-              onToggleMicrophone={toggleMicrophone}
-              onMicrophoneVolumeChange={setMicrophoneVolume}
-            />
+            <div className="flex h-full">
+              <div className="flex-1">
+                <EnhancedKaraokePlayerWithAudio
+                  song={state.currentSong}
+                  isPlaying={state.isPlaying}
+                  currentTime={state.currentTime}
+                  volume={state.volume}
+                  keyAdjustment={state.keyAdjustment}
+                  tempoAdjustment={state.tempoAdjustment}
+                  currentLyricIndex={state.currentLyricIndex}
+                  microphoneEnabled={audioEngineState.microphoneEnabled}
+                  microphoneVolume={audioEngineState.microphoneVolume}
+                  isLoadingAudio={isLoadingAudio}
+                  frequencyData={getFrequencyData()}
+                  onTogglePlayPause={togglePlayPause}
+                  onSkip={skipSong}
+                  onVolumeChange={setVolume}
+                  onKeyChange={setKeyAdjustment}
+                  onTempoChange={setTempoAdjustment}
+                  onBack={handleBackToLibrary}
+                  onSeek={seekTo}
+                  onToggleMicrophone={toggleMicrophone}
+                  onMicrophoneVolumeChange={setMicrophoneVolume}
+                />
+              </div>
+              
+              {/* Performance Panel - Desktop Only */}
+              <div className="hidden xl:block w-80 bg-black/20 backdrop-blur-sm border-l border-gray-700/50 p-4 space-y-4">
+                <ScoreDisplay
+                  currentScore={state.currentScore}
+                  pitchAccuracy={state.pitchAccuracy}
+                  isRecording={state.recordingMode}
+                  songDifficulty={state.currentSong.difficulty}
+                />
+                
+                <VoiceEffectsPanel
+                  currentEffect={voiceEffect}
+                  reverbLevel={reverbLevel}
+                  echoLevel={echoLevel}
+                  onEffectChange={(effect) => setVoiceEffectSettings(effect, reverbLevel, echoLevel)}
+                  onReverbChange={(level) => setVoiceEffectSettings(voiceEffect, level, echoLevel)}
+                  onEchoChange={(level) => setVoiceEffectSettings(voiceEffect, reverbLevel, level)}
+                />
+              </div>
+            </div>
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">

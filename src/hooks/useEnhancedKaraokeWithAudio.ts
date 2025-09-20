@@ -9,7 +9,10 @@ const initialUserPreferences: UserPreferences = {
   tempoAdjustment: 0,
   lyricsSize: 'medium',
   theme: 'dark',
-  autoAdvance: true
+  autoAdvance: true,
+  showBackgroundVideo: false,
+  enableParticleEffects: true,
+  voiceEffects: 'none'
 };
 
 const initialUserSession: UserSession = {
@@ -35,7 +38,10 @@ export const useEnhancedKaraokeWithAudio = () => {
     tempoAdjustment: 0,
     currentLyricIndex: 0,
     userSession: initialUserSession,
-    waveformProgress: 0
+    waveformProgress: 0,
+    recordingMode: false,
+    currentScore: 0,
+    pitchAccuracy: []
   });
 
   const [songs] = useState<Song[]>(audioSongs);
@@ -43,6 +49,10 @@ export const useEnhancedKaraokeWithAudio = () => {
   const [selectedGenre, setSelectedGenre] = useState('All');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [playlists, setPlaylists] = useState<PlaylistData[]>([]);
+  const [voiceEffect, setVoiceEffect] = useState('none');
+  const [reverbLevel, setReverbLevel] = useState(30);
+  const [echoLevel, setEchoLevel] = useState(20);
 
   // Sync audio engine state with component state
   useEffect(() => {
@@ -237,6 +247,46 @@ export const useEnhancedKaraokeWithAudio = () => {
     audioEngine.setMicrophoneVolume(volume);
   }, [audioEngine]);
 
+  const toggleRecording = useCallback(() => {
+    setState(prev => ({ ...prev, recordingMode: !prev.recordingMode }));
+  }, []);
+
+  const createPlaylist = useCallback((name: string, songIds: string[]) => {
+    const newPlaylist: PlaylistData = {
+      id: `playlist-${Date.now()}`,
+      name,
+      songs: songIds,
+      createdAt: new Date(),
+      isPublic: false
+    };
+    setPlaylists(prev => [...prev, newPlaylist]);
+  }, []);
+
+  const deletePlaylist = useCallback((playlistId: string) => {
+    setPlaylists(prev => prev.filter(p => p.id !== playlistId));
+  }, []);
+
+  const playPlaylist = useCallback((playlist: PlaylistData) => {
+    // Add all songs from playlist to queue
+    const playlistSongs = playlist.songs
+      .map(songId => songs.find(s => s.id === songId))
+      .filter(Boolean) as Song[];
+    
+    if (playlistSongs.length > 0) {
+      // Play first song immediately
+      playSong(playlistSongs[0]);
+      
+      // Add rest to queue
+      playlistSongs.slice(1).forEach(song => addToQueue(song));
+    }
+  }, [songs, playSong, addToQueue]);
+
+  const setVoiceEffectSettings = useCallback((effect: string, reverb: number, echo: number) => {
+    setVoiceEffect(effect);
+    setReverbLevel(reverb);
+    setEchoLevel(echo);
+  }, []);
+
   return {
     state: {
       ...state,
@@ -252,6 +302,10 @@ export const useEnhancedKaraokeWithAudio = () => {
     genres,
     favorites,
     isLoadingAudio,
+    playlists,
+    voiceEffect,
+    reverbLevel,
+    echoLevel,
     addToQueue,
     removeFromQueue,
     playSong,
@@ -262,6 +316,11 @@ export const useEnhancedKaraokeWithAudio = () => {
     skipSong,
     seekTo,
     toggleFavorite,
+    toggleRecording,
+    createPlaylist,
+    deletePlaylist,
+    playPlaylist,
+    setVoiceEffectSettings,
     // Audio-specific functions
     toggleMicrophone,
     setMicrophoneVolume,
