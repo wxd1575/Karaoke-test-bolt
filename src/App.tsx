@@ -1,22 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEnhancedKaraokeWithAudio } from './hooks/useEnhancedKaraokeWithAudio';
 import { EnhancedSongLibrary } from './components/EnhancedSongLibrary';
 import { EnhancedKaraokePlayerWithAudio } from './components/EnhancedKaraokePlayerWithAudio';
 import { QueueSidebar } from './components/QueueSidebar';
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
+import { useKaraokeStore } from './hooks/useKaraokeStore';
+import { useSpotifySearch } from './hooks/useSpotifySearch';
+import Dexie from 'dexie';
+import { useMusixmatchLyrics, useMusixmatchSyncedLyrics } from './hooks/useMusixmatchLyrics';
+
+// Dexie.js setup for offline caching
+class KaraokeDB extends Dexie {
+  songs: Dexie.Table<any, string>;
+  constructor() {
+    super('karaoke-db');
+    this.version(1).stores({ songs: 'id,title,artist,album,genre,year' });
+    this.songs = this.table('songs');
+  }
+}
+const db = new KaraokeDB();
 
 type ViewMode = 'library' | 'player';
 
 function App() {
+  // Spotify token (for dev, replace with OAuth in production)
+  const [spotifyToken, setSpotifyToken] = useState('');
+  const { songs, setSongs, favorites } = useKaraokeStore();
+  const [searchTerm, setSearchTerm] = useState('');
+  const { data: spotifyResults } = useSpotifySearch(searchTerm, spotifyToken);
+
+  useEffect(() => {
+    if (spotifyResults) {
+      setSongs(spotifyResults);
+      db.songs.bulkPut(spotifyResults); // Cache for offline
+    }
+  }, [spotifyResults, setSongs]);
+
   const {
     state,
-    songs,
-    searchTerm,
-    setSearchTerm,
-    selectedGenre,
-    setSelectedGenre,
-    genres,
-    favorites,
     isLoadingAudio,
     addToQueue,
     removeFromQueue,
@@ -27,7 +48,6 @@ function App() {
     setTempoAdjustment,
     skipSong,
     seekTo,
-    toggleFavorite,
     toggleMicrophone,
     setMicrophoneVolume,
     getFrequencyData,
@@ -46,6 +66,25 @@ function App() {
     setViewMode('library');
   };
 
+  // Fix toggleFavorite prop type mismatch
+  const handleToggleFavorite = (song: any) => {
+    useKaraokeStore.getState().toggleFavorite(song.id);
+  };
+
+  // Lyrics integration for selected song
+  const currentTrackId = state.currentSong?.id || '';
+  const { data: lyrics } = useMusixmatchLyrics(currentTrackId);
+  const { data: syncedLyrics } = useMusixmatchSyncedLyrics(currentTrackId);
+
+  useEffect(() => {
+    if (lyrics && currentTrackId) {
+      db.songs.update(currentTrackId, { lyrics }); // Cache lyrics offline
+    }
+    if (syncedLyrics && currentTrackId) {
+      db.songs.update(currentTrackId, { syncedLyrics }); // Cache synced lyrics offline
+    }
+  }, [lyrics, syncedLyrics, currentTrackId]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/30 to-cyan-900/30">
       <div className="flex h-screen">
@@ -62,28 +101,41 @@ function App() {
                   <button
                     onClick={() => setSidebarOpen(true)}
                     className="p-2 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg transition-colors border border-gray-700"
+                    title="Open Queue Sidebar"
                   >
                     <Menu className="w-5 h-5 text-white" />
                   </button>
+                </div>
+
+                {/* Spotify Token Input (for dev/testing) */}
+                <div className="p-4 bg-gray-900 text-white rounded-lg mb-6">
+                  <label className="block mb-2">Spotify API Token:</label>
+                  <input
+                    type="text"
+                    value={spotifyToken}
+                    onChange={e => setSpotifyToken(e.target.value)}
+                    className="w-full p-2 rounded bg-gray-800 border border-gray-700 mb-4"
+                    placeholder="Paste your Spotify token here"
+                  />
                 </div>
 
                 <EnhancedSongLibrary
                   songs={songs}
                   searchTerm={searchTerm}
                   onSearchChange={setSearchTerm}
-                  selectedGenre={selectedGenre}
-                  onGenreChange={setSelectedGenre}
-                  genres={genres}
+                  selectedGenre={'All'}
+                  onGenreChange={() => {}}
+                  genres={['All']}
                   onPlay={handlePlaySong}
                   onAddToQueue={addToQueue}
                   favorites={favorites}
-                  onToggleFavorite={toggleFavorite}
+                  onToggleFavorite={handleToggleFavorite}
                 />
               </div>
             </div>
           ) : state.currentSong ? (
             <EnhancedKaraokePlayerWithAudio
-              song={state.currentSong}
+              song={{ ...state.currentSong, lyrics: syncedLyrics || lyrics || [] }}
               isPlaying={state.isPlaying}
               currentTime={state.currentTime}
               volume={state.volume}
