@@ -48,6 +48,9 @@ export interface UserPreferences {
   lyricsSize: 'small' | 'medium' | 'large';
   theme: 'dark' | 'neon' | 'classic';
   autoAdvance: boolean;
+  showBackgroundVideo: boolean;
+  enableParticleEffects: boolean;
+  voiceEffects: 'none' | 'reverb' | 'echo' | 'robot';
 }
 
 export interface KaraokeState {
@@ -61,6 +64,9 @@ export interface KaraokeState {
   currentLyricIndex: number;
   userSession: UserSession;
   waveformProgress: number;
+  recordingMode: boolean;
+  currentScore: number;
+  pitchAccuracy: number[];
 }
 
 export interface AudioSettings {
@@ -69,4 +75,23 @@ export interface AudioSettings {
   tempoChange: number;
   vocalsEnabled: boolean;
   instrumentalsEnabled: boolean;
+  voiceEffects: string;
+  reverbLevel: number;
+  echoLevel: number;
+}
+
+export interface ScoreData {
+  songId: string;
+  score: number;
+  accuracy: number;
+  timestamp: Date;
+  difficulty: string;
+}
+
+export interface PlaylistData {
+  id: string;
+  name: string;
+  songs: string[];
+  createdAt: Date;
+  isPublic: boolean;
 }
