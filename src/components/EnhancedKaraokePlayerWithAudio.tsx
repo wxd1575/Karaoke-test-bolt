@@ -178,24 +178,60 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
               {song.lyrics.map((lyric, index) => {
                 const isActive = index === currentLyricIndex;
                 const isPast = index < currentLyricIndex;
-                const isFuture = index > currentLyricIndex;
-                
+
+                // Word-level highlighting logic
+                let activeWordIndex = -1;
+                if (isActive && lyric.words && lyric.words.length > 0) {
+                  activeWordIndex = lyric.words.findIndex(
+                    (word, i) =>
+                      currentTime >= word.startTime &&
+                      (i === (lyric.words?.length ?? 0) - 1 || currentTime < (lyric.words?.[i + 1]?.startTime ?? Infinity))
+                  );
+                }
+
+                // Use type color for active line
+                const typeColor = isActive ? getLyricTypeColor(lyric.type) : '';
+
                 return (
                   <div
                     key={lyric.id}
-                    className={`transition-all duration-700 ease-out ${
-                      isActive
-                        ? `text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold scale-110 drop-shadow-2xl ${getLyricTypeColor(lyric.type)}`
-                        : isPast
-                        ? 'text-2xl sm:text-3xl md:text-4xl text-gray-400/60 scale-95'
-                        : 'text-xl sm:text-2xl md:text-3xl text-gray-600/40 scale-90'
-                    }`}
-                    style={{
-                      textShadow: isActive ? '0 0 30px rgba(34, 211, 238, 0.6)' : 'none',
-                      filter: isActive ? 'brightness(1.2)' : 'none'
-                    }}
+                    className={[
+                      'transition-all duration-700 ease-out relative',
+                      isActive && 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold scale-110 drop-shadow-2xl text-white',
+                      isActive && 'bg-gradient-to-r from-cyan-900/40 via-purple-900/40 to-cyan-900/40 rounded-xl py-2 px-4 mx-auto shadow-lg ring-2 ring-cyan-400/30 animate-glow',
+                      isPast && 'text-2xl sm:text-3xl md:text-4xl text-gray-400/60 scale-95 opacity-60',
+                      !isActive && !isPast && 'text-xl sm:text-2xl md:text-3xl text-gray-600/40 scale-90 opacity-40',
+                      typeColor
+                    ].filter(Boolean).join(' ')}
+                    aria-live={isActive ? 'polite' : undefined}
+                    aria-atomic={isActive ? 'true' : undefined}
                   >
-                    {lyric.text}
+                    {isActive && lyric.words && lyric.words.length > 0 ? (
+                      <span className="inline-block">
+                        {lyric.words.map((word, wIdx) => {
+                          // Animation classes for active word
+                          const isWordActive = wIdx === activeWordIndex;
+                          const isWordPast = wIdx < activeWordIndex;
+                          const isWordFuture = wIdx > activeWordIndex;
+                          return (
+                            <span
+                              key={wIdx}
+                              className={[
+                                'inline-block transition-all duration-200 mx-1',
+                                isWordActive && 'text-cyan-300 font-extrabold scale-125 underline underline-offset-4 decoration-cyan-400 drop-shadow-[0_0_16px_rgba(34,211,238,0.8)] animate-pulse',
+                                isWordPast && 'text-gray-300/70 font-semibold',
+                                isWordFuture && 'text-white/60',
+                              ].filter(Boolean).join(' ')}
+                              aria-current={isWordActive ? 'true' : undefined}
+                            >
+                              {word.text}
+                            </span>
+                          );
+                        })}
+                      </span>
+                    ) : (
+                      lyric.text
+                    )}
                   </div>
                 );
               })}

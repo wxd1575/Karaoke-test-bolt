@@ -14,14 +14,22 @@ export interface Song {
   coverImage?: string;
   audioUrl?: string;
   waveformData?: number[];
+  syncedLyrics?: string | { id: string; text: string; startTime: number; endTime: number; type?: string }[];
+}
+
+export interface LyricWord {
+  text: string;
+  startTime: number;
+  endTime: number;
 }
 
 export interface LyricLine {
   id: string;
   text: string;
   startTime: number; // in seconds
-  endTime: number;
+  endTime: number; // in seconds
   type?: 'verse' | 'chorus' | 'bridge' | 'outro';
+  words?: LyricWord[]; // Optional word-level timing
 }
 
 export interface QueueItem {
