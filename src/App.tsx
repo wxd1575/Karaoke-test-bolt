@@ -6,7 +6,7 @@ import { QueueSidebar } from './components/QueueSidebar';
 import { PlaylistManager } from './components/PlaylistManager';
 import { ScoreDisplay } from './components/ScoreDisplay';
 import { VoiceEffectsPanel } from './components/VoiceEffectsPanel';
-import { Menu, X } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useKaraokeStore } from './hooks/useKaraokeStore';
 import { useSpotifySearch } from './hooks/useSpotifySearch';
 import Dexie from 'dexie';
@@ -204,6 +204,7 @@ function App() {
     for (const line of result) {
       if (line.words && line.words.length > 0) {
         for (let i = 0; i < line.words.length - 1; i++) {
+          line.words[i].endTime = line.words[i + 1].startTime;
         }
         line.words[line.words.length - 1].endTime = line.endTime;
       }
@@ -332,22 +333,36 @@ function App() {
     const newList = userPlaylists.filter(p => p.id !== playlistId);
     saveUserPlaylists(newList);
   };
-  const handleAddToPlaylist = (playlistId: string, songId: string) => {
+
+  // --- Playlist Enhancements ---
+  // 1. Allow renaming playlists
+  const handleRenamePlaylist = (playlistId: string, newName: string) => {
     const newList = userPlaylists.map(p =>
-      p.id === playlistId && !p.songs.includes(songId)
-        ? { ...p, songs: [...p.songs, songId] }
-        : p
+      p.id === playlistId ? { ...p, name: newName } : p
     );
     saveUserPlaylists(newList);
   };
-  const handleRemoveFromPlaylist = (playlistId: string, songId: string) => {
+
+  // 2. Allow toggling playlist public/private
+  const handleTogglePublic = (playlistId: string) => {
     const newList = userPlaylists.map(p =>
-      p.id === playlistId
-        ? { ...p, songs: p.songs.filter((id: string) => id !== songId) }
-        : p
+      p.id === playlistId ? { ...p, isPublic: !p.isPublic } : p
     );
     saveUserPlaylists(newList);
   };
+
+  // 3. Allow reordering songs in a playlist
+  const handleReorderSongs = (playlistId: string, fromIdx: number, toIdx: number) => {
+    const newList = userPlaylists.map(p => {
+      if (p.id !== playlistId) return p;
+      const songs = [...p.songs];
+      const [moved] = songs.splice(fromIdx, 1);
+      songs.splice(toIdx, 0, moved);
+      return { ...p, songs };
+    });
+    saveUserPlaylists(newList);
+  };
+
   const handlePlayPlaylist = (playlist: PlaylistData) => {
     if (playlist && playlist.songs.length > 0) {
       const playlistSongs = playlist.songs
@@ -360,35 +375,6 @@ function App() {
       }
     }
   };
-
-// --- Playlist Enhancements ---
-// 1. Allow renaming playlists
-const handleRenamePlaylist = (playlistId: string, newName: string) => {
-  const newList = userPlaylists.map(p =>
-    p.id === playlistId ? { ...p, name: newName } : p
-  );
-  saveUserPlaylists(newList);
-};
-
-// 2. Allow toggling playlist public/private
-const handleTogglePublic = (playlistId: string) => {
-  const newList = userPlaylists.map(p =>
-    p.id === playlistId ? { ...p, isPublic: !p.isPublic } : p
-  );
-  saveUserPlaylists(newList);
-};
-
-// 3. Allow reordering songs in a playlist
-const handleReorderSongs = (playlistId: string, fromIdx: number, toIdx: number) => {
-  const newList = userPlaylists.map(p => {
-    if (p.id !== playlistId) return p;
-    const songs = [...p.songs];
-    const [moved] = songs.splice(fromIdx, 1);
-    songs.splice(toIdx, 0, moved);
-    return { ...p, songs };
-  });
-  saveUserPlaylists(newList);
-};
 
   return (
     <UserAuthProvider>
@@ -535,8 +521,6 @@ const handleReorderSongs = (playlistId: string, fromIdx: number, toIdx: number) 
                       songs={songs}
                       onCreatePlaylist={handleCreatePlaylist}
                       onDeletePlaylist={handleDeletePlaylist}
-                      onAddToPlaylist={handleAddToPlaylist}
-                      onRemoveFromPlaylist={handleRemoveFromPlaylist}
                       onPlayPlaylist={handlePlayPlaylist}
                       onRenamePlaylist={handleRenamePlaylist}
                       onTogglePublic={handleTogglePublic}

@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.volume-gradient {
+  background: linear-gradient(to right, #06b6d4 0%, #8b5cf6 var(--volume, 50%), #374151 var(--volume, 50%), #374151 100%);
+}
+
+.profile-input {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+}
+
+.profile-editable {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #06b6d4;
+}
+
+.profile-editable:focus {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}

@@ -28,12 +28,6 @@ interface EnhancedKaraokePlayerWithAudioProps {
   onMicrophoneVolumeChange: (volume: number) => void;
 }
 
-const formatTime = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
-
 export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithAudioProps> = ({
   song,
   isPlaying,
@@ -82,6 +76,8 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-white hover:text-cyan-300 transition-colors"
+          title="Back to Library"
+          aria-label="Back to Library"
         >
           <ArrowLeft className="w-5 h-5" />
           Back to Library
@@ -105,12 +101,16 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
             className={`p-2 rounded-lg transition-colors ${
               microphoneEnabled ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
             }`}
+            title={microphoneEnabled ? 'Disable Microphone' : 'Enable Microphone'}
+            aria-label={microphoneEnabled ? 'Disable Microphone' : 'Enable Microphone'}
           >
             {microphoneEnabled ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
           </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="p-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors"
+            title="Settings"
+            aria-label="Settings"
           >
             <Settings className="w-5 h-5 text-white" />
           </button>
@@ -122,14 +122,17 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
         <div className="relative z-20 bg-black/40 backdrop-blur-sm border-b border-gray-700/50 p-4">
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Key Adjustment</label>
+              <label htmlFor="key-adjustment" className="block text-sm font-medium text-gray-300 mb-2">Key Adjustment</label>
               <input
+                id="key-adjustment"
                 type="range"
                 min="-12"
                 max="12"
                 value={keyAdjustment}
                 onChange={(e) => onKeyChange(parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                aria-label="Key Adjustment"
+                title="Key Adjustment"
               />
               <div className="text-center text-sm text-gray-400 mt-1">
                 {keyAdjustment > 0 ? '+' : ''}{keyAdjustment} semitones
@@ -137,14 +140,17 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Tempo Adjustment</label>
+              <label htmlFor="tempo-adjustment" className="block text-sm font-medium text-gray-300 mb-2">Tempo Adjustment</label>
               <input
+                id="tempo-adjustment"
                 type="range"
                 min="-20"
                 max="20"
                 value={tempoAdjustment}
                 onChange={(e) => onTempoChange(parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                aria-label="Tempo Adjustment"
+                title="Tempo Adjustment"
               />
               <div className="text-center text-sm text-gray-400 mt-1">
                 {tempoAdjustment > 0 ? '+' : ''}{tempoAdjustment}%
@@ -203,8 +209,7 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
                       !isActive && !isPast && 'text-xl sm:text-2xl md:text-3xl text-gray-600/40 scale-90 opacity-40',
                       typeColor
                     ].filter(Boolean).join(' ')}
-                    aria-live={isActive ? 'polite' : undefined}
-                    aria-atomic={isActive ? 'true' : undefined}
+                    {...(isActive ? { 'aria-live': 'polite', 'aria-atomic': 'true' } : {})}
                   >
                     {isActive && lyric.words && lyric.words.length > 0 ? (
                       <span className="inline-block">
@@ -251,6 +256,7 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
             duration={song.duration}
             currentTime={currentTime}
             onSeek={onSeek}
+            aria-label="Waveform seek bar"
           />
         )}
       </div>
@@ -264,6 +270,8 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
               onClick={onTogglePlayPause}
               disabled={isLoadingAudio}
               className="w-20 h-20 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center hover:from-cyan-600 hover:to-purple-600 transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/25 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={isPlaying ? 'Pause' : 'Play'}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isLoadingAudio ? (
                 <Loader className="w-10 h-10 text-white animate-spin" />
@@ -277,6 +285,8 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
             <button
               onClick={onSkip}
               className="w-14 h-14 bg-gray-700/50 hover:bg-gray-600/50 rounded-full flex items-center justify-center transition-colors border border-gray-600"
+              title="Skip"
+              aria-label="Skip"
             >
               <SkipForward className="w-7 h-7 text-white" />
             </button>
@@ -284,26 +294,20 @@ export const EnhancedKaraokePlayerWithAudio: React.FC<EnhancedKaraokePlayerWithA
 
           {/* Volume Control */}
           <div className="flex items-center justify-center gap-4 max-w-md mx-auto">
-            <Volume2 className="w-5 h-5 text-gray-400" />
+            <Volume2 className="w-5 h-5 text-gray-400" aria-hidden="true" />
+            <label htmlFor="volume-slider" className="sr-only">Volume</label>
             <input
+              id="volume-slider"
               type="range"
               min="0"
               max="100"
               value={volume}
               onChange={(e) => onVolumeChange(parseInt(e.target.value))}
-              className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-              style={{
-                background: `linear-gradient(to right, #06b6d4 0%, #8b5cf6 ${volume}%, #374151 ${volume}%, #374151 100%)`
-              }}
+              className={`flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider volume-gradient`}
+              aria-label="Volume"
+              title="Volume"
             />
             <span className="text-gray-400 text-sm w-8">{volume}</span>
-          </div>
-
-          {/* Time Display */}
-          <div className="flex justify-center mt-4">
-            <span className="text-gray-400 text-sm">
-              {formatTime(currentTime)} / {formatTime(song.duration)}
-            </span>
           </div>
         </div>
       </div>

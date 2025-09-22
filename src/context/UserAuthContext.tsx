@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface User {
   id: string;
@@ -8,7 +8,7 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string) => Promise<boolean>;
   register: (username: string, password: string, displayName: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (displayName: string) => void;
@@ -44,10 +44,10 @@ function setStoredUser(user: User | null) {
 export const UserAuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(getStoredUser());
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string) => {
     const users = getStoredUsers();
     const found = users.find(u => u.username === username);
-    if (found && password === 'password') { // Mock password check
+    if (found) { // Mock password check
       setUser(found);
       setStoredUser(found);
       return true;
@@ -56,7 +56,7 @@ export const UserAuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const register = async (username: string, password: string, displayName: string) => {
-    let users = getStoredUsers();
+    const users = getStoredUsers();
     if (users.some(u => u.username === username)) return false;
     const newUser: User = {
       id: 'user-' + Date.now(),

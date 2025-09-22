@@ -25,14 +25,29 @@ const UserProfile: React.FC = () => {
       <div>
         <strong>Display Name:</strong>{' '}
         {editing ? (
-          <input
-            value={displayName}
-            onChange={e => setDisplayName(e.target.value)}
-            onBlur={handleSave}
-            autoFocus
-          />
+          <>
+            <label htmlFor="displayNameInput" className="sr-only">Display Name</label>
+            <input
+              id="displayNameInput"
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              onBlur={handleSave}
+              autoFocus
+              title="Edit display name"
+              placeholder="Enter display name"
+              className="profile-input"
+            />
+          </>
         ) : (
-          <span onClick={() => setEditing(true)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>
+          <span
+            onClick={() => setEditing(true)}
+            className="profile-editable"
+            tabIndex={0}
+            role="button"
+            aria-label="Edit display name"
+            title="Edit display name"
+            onKeyPress={e => { if (e.key === 'Enter' || e.key === ' ') setEditing(true); }}
+          >
             {user.displayName}
           </span>
         )}
